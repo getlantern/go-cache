@@ -24,17 +24,19 @@ func NewCache() *Cache {
 	return &Cache{entries: make(map[string]*entry)}
 }
 
-// Get returns the currently cached value for the given key, as long as it hasn't expired.
-func (cache *Cache) Get(key string) interface{} {
+// Get returns the currently cached value for the given key, as long as it
+// hasn't expired.  If the key was never set, or has expired, found will be
+// false.
+func (cache *Cache) Get(key string) (val interface{}, found bool) {
 	cache.mutex.RLock()
 	defer cache.mutex.RUnlock()
 	entry := cache.entries[key]
 	if entry == nil {
-		return nil
+		return nil, false
 	} else if entry.expiration.Before(time.Now()) {
-		return nil
+		return nil, false
 	} else {
-		return entry.data
+		return entry.data, true
 	}
 }
 
